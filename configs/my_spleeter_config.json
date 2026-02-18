@@ -1,0 +1,30 @@
+{
+    "train_csv": "D:\\THESIS\\Project\\configs\\train.csv",
+    "validation_csv": "D:\\THESIS\\Project\\configs\\val.csv",
+    "model_dir": "D:\\THESIS\\Project\\training_output",
+    "mix_name": "mixture",
+    "instrument_list": ["vocals", "drums", "bass", "other"],
+    "model": {
+        "type": "unet.unet",
+        "params": {
+            "conv_activation": "ELU",
+            "deconv_activation": "ELU"
+        }
+    },
+    "sample_rate": 44100,
+    "frame_length": 4096,
+    "frame_step": 1024,
+    "T": 256,
+    "F": 1024,
+    "n_channels": 2,
+    "chunk_duration": 11,
+    "batch_size": 1,
+    "shuffle_buffer_size": 0,
+    "learning_rate": 0.00001,
+    "train_max_steps": 1520000,
+    "save_checkpoints_steps": 500,
+    "save_summary_steps": 100,
+    "keep_checkpoint_max": 5,
+    "throttle_secs": 600,
+    "random_seed": 42
+}
