@@ -27,7 +27,7 @@ resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv6" {
   ip_protocol       = "-1" # all ports
 }
 
-resource "aws_instance" "llm_training_instance" {
+resource "aws_instance" "spleeter_training_instance" {
   ami           = "ami-07b531d2a90722369"
   instance_type = var.instance_type
   key_name      = "spleeter-training"
@@ -36,9 +36,11 @@ resource "aws_instance" "llm_training_instance" {
   root_block_device {
     volume_size = 256
     volume_type = "gp3"
+    throughput = 300
+    iops = 3000
   }
   tags = {
-    Name = "Spleeter Training G6 Instance"
+    Name = "Spleeter Training g4dn Instance"
   }
 
   user_data = <<-EOF
@@ -46,7 +48,10 @@ resource "aws_instance" "llm_training_instance" {
       WORKING_DIR="/opt/dlami/nvme"
 
       # Install necessary packages
-      apt install python3-pip -y
+      apt install ffmpeg zip -y
+      add-apt-repository ppa:deadsnakes/ppa
+      apt update
+      apt install python3.10 python3.10-venv -y
     
       # Wait for the device to be attached
       while [ ! -e /dev/nvme1n1 ]; do sleep 1; done
@@ -70,7 +75,7 @@ resource "aws_instance" "llm_training_instance" {
         # When the venv is active, pip checks get bypassed.
         
         echo "Creating virtual environment..."
-        python3 -m venv .venv
+        python3.10 -m venv .venv
         
         echo "Activating virtual environment..."
         source .venv/bin/activate
@@ -79,10 +84,13 @@ resource "aws_instance" "llm_training_instance" {
         # Now that venv is active, pip will install into .venv/lib 
         # and not conflict with the system python.
         pip install -r requirements.txt > installation_log.txt 2>&1
+
+        # Finalizations
+        chmod +x setup.sh train.sh
       EOU
     EOF
 }
 
 output "public_ip" {
-  value = aws_instance.llm_training_instance.public_ip
+  value = aws_instance.spleeter_training_instance.public_ip
 }
