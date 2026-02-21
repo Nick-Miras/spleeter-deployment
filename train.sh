@@ -1,1 +1,3 @@
-/usr/bin/python3 -m spleeter train -p configs/modified_config.json
+python -m spleeter train -p configs/modified_config.json -d data/
+
+zip -r training_output.zip training_output/
