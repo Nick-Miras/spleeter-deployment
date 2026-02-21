@@ -1,7 +1,4 @@
 {
-    "train_csv": "D:\\THESIS\\Project\\data\\train.csv",
-    "validation_csv": "D:\\THESIS\\Project\\data\\val.csv",
-    "model_dir": "D:\\THESIS\\Project\\training_output",
     "mix_name": "mixture",
     "instrument_list": ["vocals", "drums", "bass", "other"],
     "model": {
@@ -26,5 +23,7 @@
     "save_summary_steps": 100,
     "keep_checkpoint_max": 5,
     "throttle_secs": 600,
-    "random_seed": 42
+    "random_seed": 42,
+    "separation": 2,
+    "mask_extension": "zeros"
 }
