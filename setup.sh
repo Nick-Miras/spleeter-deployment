@@ -3,7 +3,11 @@ PROJECT_ROOT=$(pwd)
 mkdir -p data/Datasets
 cd data
 # Download the dataset
-hf download qrowraven/Datasetqrow --repo-type dataset --local-dir ./Datasets
+hf download qrowraven/Datasetqrow --repo-type dataset
+
+# unzip to data/Datasets
+unzip Datasetqrow.zip -d Datasets
+rm Datasetqrow.zip
 
 # Update config paths
 cd "$PROJECT_ROOT"
