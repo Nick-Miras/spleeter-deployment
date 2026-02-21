@@ -23,7 +23,5 @@
     "save_summary_steps": 100,
     "keep_checkpoint_max": 5,
     "throttle_secs": 600,
-    "random_seed": 42,
-    "separation": 2,
-    "mask_extension": "zeros"
+    "random_seed": 42
 }
