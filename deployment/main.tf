@@ -34,7 +34,7 @@ resource "aws_instance" "llm_training_instance" {
   vpc_security_group_ids = [aws_security_group.allow_ssh.id]
 
   root_block_device {
-    volume_size = 100
+    volume_size = 256
     volume_type = "gp3"
   }
   tags = {
@@ -52,7 +52,7 @@ resource "aws_instance" "llm_training_instance" {
       while [ ! -e /dev/nvme1n1 ]; do sleep 1; done
 
       cd $WORKING_DIR
-      git clone https://github.com/Nick-Miras/Skill-LLM-Cloud.git thesis
+      git clone https://github.com/Nick-Miras/spleeter-deployment.git thesis
       chown -R ubuntu:ubuntu thesis
       chmod -R 744 thesis
       cd thesis
