@@ -18,7 +18,7 @@ with open(config_path, 'r') as f:
 
 root = os.getcwd()
 config['train_csv'] = os.path.join(root, 'data', 'train.csv')
-config['validation_csv'] = os.path.join(root, 'data', 'val.csv')
+config['validation_csv'] = os.path.join(root, 'data', 'validation.csv')
 config['model_dir'] = os.path.join(root, 'training_output')
 
 with open(config_path, 'w') as f:
