@@ -34,13 +34,13 @@ resource "aws_instance" "spleeter_training_instance" {
   vpc_security_group_ids = [aws_security_group.allow_ssh.id]
 
   root_block_device {
-    volume_size = 256
+    volume_size = 150
     volume_type = "gp3"
     throughput = 300
     iops = 3000
   }
   tags = {
-    Name = "Spleeter Training g4dn Instance"
+    Name = "Spleeter Training g6 Instance"
   }
 
   user_data = <<-EOF
