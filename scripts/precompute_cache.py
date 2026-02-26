@@ -37,9 +37,7 @@ train_dataset = builder.build(
 
  # prefetch
 optimized_dataset = train_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
-        
-        
-optimized_dataset = train_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
+
 
 # 5. Iterate with tqdm to generate the progress bar
 print(f"Starting cache creation with batch size {batch_size}...")
