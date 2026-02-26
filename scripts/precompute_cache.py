@@ -2,7 +2,7 @@ import tensorflow as tf
 from spleeter.utils.configuration import load_configuration
 from spleeter.dataset import DatasetBuilder
 from spleeter.audio.adapter import AudioAdapter
-import tqdm
+from tqdm import tqdm
 import math
 
 
