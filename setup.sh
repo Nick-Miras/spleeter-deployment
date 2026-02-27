@@ -26,3 +26,4 @@ with open(config_path, 'w') as f:
 
 print(f'Updated {config_path} with project root: {root}')
 "
+export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
