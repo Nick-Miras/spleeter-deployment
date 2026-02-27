@@ -5,3 +5,4 @@ click==7.1.2
 huggingface_hub<1.0
 numpy<2.0
 hf_transfer
+tensorboard
