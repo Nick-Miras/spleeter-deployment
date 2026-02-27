@@ -1,0 +1,18 @@
+name: spleeter
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - cudatoolkit
+  - cudnn=8.9.2
+  - tensorboard
+  - httpx
+  - typer
+  - click
+  - numpy<2.0
+  - huggingface_hub<1.0
+  - pip
+  - pip:
+    - spleeter==2.4.0
+    - hf_transfer
