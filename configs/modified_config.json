@@ -17,7 +17,7 @@
     "chunk_duration": 11,
     "batch_size": 32,
     "shuffle_buffer_size": 1000,
-    "learning_rate": 0.00001,
+    "learning_rate": 0.0001,
     "train_max_steps": 1514000,
     "save_checkpoints_steps": 500,
     "save_summary_steps": 100,
