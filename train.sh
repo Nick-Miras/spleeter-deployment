@@ -2,6 +2,9 @@ export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
 
 python -m spleeter train -p configs/modified_config.json -d data/
 
-zip -r model_weights_$(date +%Y%m%d_%H%M).zip spleeter_pretrained1/
+FILE_NAME=model_weights_$(date +%Y%m%d_%H%M)
+zip -r "$FILE_NAME.zip" spleeter_pretrained1/
 
-sudo shutdown -h +1
+cp "$FILE_NAME" /mnt/thesis/spleeter-deployment/
+
+# sudo shutdown -h +1
