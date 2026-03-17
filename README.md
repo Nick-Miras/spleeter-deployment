@@ -26,16 +26,13 @@ local copy of spleeter code
 ##### `/data`
 directory that contains the training data and the csv files that refer to it
 
-
 ## Setup
 
 ### Dependencies
 1. python 3.9 or 3.10
 2. ffmpeg
+3. zip
 
 
 ### Datasets
 The full dataset is in https://huggingface.co/datasets/qrowraven/Datasetqrow.
-
-
-

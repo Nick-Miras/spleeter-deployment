@@ -8,7 +8,7 @@ resource "aws_volume_attachment" "ebs_att" {
 
 resource "aws_instance" "spleeter_training_instance" {
   ami           = "ami-02d2c097a1e2910f5"  # Nvidia Base CUDA AMI
-  instance_type = "g4dn.xlarge"
+  instance_type = "g6.xlarge"
   key_name      = "spleeter-training"
   availability_zone = "us-east-1d"
   vpc_security_group_ids = ["sg-05d98613cfd942528", "sg-0b5f5c58a5fd8d76f"]
@@ -20,7 +20,7 @@ resource "aws_instance" "spleeter_training_instance" {
     iops = 3000
   }
   tags = {
-    Name = "Spleeter Training g4dn Instance"
+    Name = "Spleeter Training g6 Instance"
   }
 
   user_data = <<-EOF
@@ -75,7 +75,8 @@ resource "aws_instance" "spleeter_training_instance" {
         # Setting Permissions
         chmod +x setup.sh train.sh test.sh
 
-        # Copying Cache to the new environment
+        # Copy Cache to the new environment
+        mkdir -p cache
         cp -r /mnt/thesis/spleeter-deployment/cache/* cache/
       EOU
     EOF
