@@ -16,3 +16,6 @@ dependencies:
   - pip:
     - spleeter==2.4.0
     - hf_transfer
+    - mir_eval
+    - musdb
+    - stempeg
