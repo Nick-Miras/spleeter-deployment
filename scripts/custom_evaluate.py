@@ -21,9 +21,20 @@ def evaluate_track(separator, track, instruments):
     """
     print(f"Processing track: {track.name} ...")
     
-    # Perform separation directly on the track's audio numpy array (shape: n_samples, 2)
-    # Spleeter's separate() handles numpy arrays seamlessly
-    prediction = separator.separate(track.audio)
+    # --- THE FIX: Force float32 and contiguous memory ---
+    audio_input = np.ascontiguousarray(track.audio, dtype=np.float32)
+    
+    # Perform separation on the formatted array
+    prediction = separator.separate(audio_input)
+
+    # --- SANITY CHECK: Is it still returning the mix? ---
+    if 'vocals' in prediction:
+        # Check if the vocal prediction is mathematically identical to the input mix
+        is_mix = np.allclose(prediction['vocals'], audio_input, atol=1e-4)
+        if is_mix:
+            print("  [Warning] Spleeter masks failed! Output is identical to the mixture.")
+        else:
+            print("  [Success] Spleeter applied masks. Output differs from the mixture.")
 
     reference_sources = []
     estimated_sources = []
