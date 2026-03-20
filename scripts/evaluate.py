@@ -230,35 +230,91 @@ def match_length(ref: np.ndarray, est: np.ndarray) -> tuple:
 
 # ── Spleeter separation ────────────────────────────────────────────────────────
 
+def _reset_tf() -> None:
+    """
+    Tear down the current TF graph and Keras session.
+    Only useful as a light cleanup; for full isolation use _separate_subprocess.
+    """
+    try:
+        import tensorflow as tf
+        tf.compat.v1.reset_default_graph()
+    except Exception:
+        pass
+    try:
+        from tensorflow.keras import backend as K
+        K.clear_session()
+    except Exception:
+        pass
+
+
+# ── Subprocess worker ──────────────────────────────────────────────────────────
+# Spleeter uses a TF1-style Estimator whose graph context cannot be reliably
+# reset between calls in the same process.  Running each separation in a fresh
+# subprocess guarantees TF starts completely clean every time.
+
+_WORKER_SCRIPT = """
+import sys, json
+from pathlib import Path
+from spleeter.separator import Separator
+
+model       = sys.argv[1]
+mixture_path = sys.argv[2]
+out_dir     = sys.argv[3]
+
+separator = Separator(model)
+separator.separate_to_file(mixture_path, out_dir)
+
+track_name = Path(mixture_path).stem
+stem_dir   = Path(out_dir) / track_name
+wavs = sorted(stem_dir.glob("*.wav"))
+print(json.dumps([f.stem for f in wavs]))
+"""
+
+
 def separate(mixture_path: str, model: str, out_dir: str) -> dict:
     """
-    Run Spleeter on *mixture_path* and return a dict
-    {stem_name: np.ndarray(samples, channels)}.
+    Run Spleeter in a **subprocess** so every track gets a clean TF graph.
 
-    Stem names are discovered by scanning the output directory, so this works
-    correctly for preset model strings, config.json paths, and any number of
-    stems without relying on STEM_MAP.
+    Returns { stem_name: np.ndarray(samples, channels) }.
     """
-    from spleeter.separator import Separator
+    import subprocess, json as _json, sys
 
-    separator = Separator(model)
-    separator.separate_to_file(mixture_path, out_dir)
+    result = subprocess.run(
+        [sys.executable, "-c", _WORKER_SCRIPT, model, mixture_path, out_dir],
+        capture_output=True,
+        text=True,
+    )
 
-    track_name = Path(mixture_path).stem
-    stem_dir = Path(out_dir) / track_name
-
-    if not stem_dir.exists():
-        raise FileNotFoundError(
-            f"Spleeter output directory not found: {stem_dir}\n"
-            f"Expected Spleeter to write stems under: {stem_dir}"
+    if result.returncode != 0:
+        # Surface any Python / TF error from the worker
+        raise RuntimeError(
+            f"Spleeter worker failed (exit {result.returncode}):\n{result.stderr}"
         )
 
-    wav_files = sorted(stem_dir.glob("*.wav"))
-    if not wav_files:
-        raise FileNotFoundError(f"No WAV stems found in Spleeter output dir: {stem_dir}")
+    # Find the stem list JSON — scan for the line that starts with '['
+    # rather than assuming last line, since Apple Silicon prints Metal
+    # device info to stdout which can appear after the JSON.
+    stem_names = None
+    for line in result.stdout.strip().splitlines():
+        line = line.strip()
+        if line.startswith("["):
+            try:
+                stem_names = _json.loads(line)
+                break
+            except _json.JSONDecodeError:
+                continue
 
-    stems = {f.stem: load_audio(str(f)) for f in wav_files}
-    print(f"  Spleeter produced stems: {list(stems.keys())}")
+    if stem_names is None:
+        raise RuntimeError(
+            f"Could not find stem list JSON in worker output.\n"
+            f"stdout: {result.stdout}\nstderr: {result.stderr}"
+        )
+
+    track_name = Path(mixture_path).stem
+    stem_dir   = Path(out_dir) / track_name
+
+    stems = {name: load_audio(str(stem_dir / f"{name}.wav")) for name in stem_names}
+    print(f"  Spleeter produced stems: {stem_names}")
     return stems
 
 
@@ -274,34 +330,76 @@ def compute_bss_metrics(
 
     Both dicts map stem_name → np.ndarray(samples, channels).
     Returns a DataFrame with one row per stem.
+
+    Matching strategy:
+      1. Match by name (intersection of keys).
+      2. If no names match at all, fall back to positional matching by
+         sorted order and print a warning.
+
+    Length alignment:
+      All stems are trimmed to a GLOBAL minimum length (shortest across all
+      reference AND estimated stems) before stacking into matrices.  Per-pair
+      trimming would produce arrays of different lengths that cannot be stacked.
     """
-    common = sorted(set(reference_stems) & set(estimated_stems))
+    ref_keys = sorted(reference_stems.keys())
+    est_keys = sorted(estimated_stems.keys())
+    common   = sorted(set(ref_keys) & set(est_keys))
+
     if not common:
-        raise ValueError("No common stem names between reference and estimate.")
+        print(
+            f"  [warn] No stem name overlap between reference {ref_keys} "
+            f"and estimated {est_keys}. Falling back to positional matching."
+        )
+        n = min(len(ref_keys), len(est_keys))
+        if n == 0:
+            raise ValueError("Both reference and estimated stem dicts are empty.")
+        pairs = list(zip(ref_keys[:n], est_keys[:n]))
+    else:
+        if set(common) != set(ref_keys):
+            print(
+                f"  [warn] Partial stem name match. "
+                f"Reference has {ref_keys}, estimated has {est_keys}. "
+                f"Evaluating on common stems only: {common}."
+            )
+        pairs = [(s, s) for s in common]
 
-    # mir_eval expects (n_sources, n_samples) in mono
-    ref_matrix = np.stack([to_mono(reference_stems[s]) for s in common])
-    est_matrix = np.stack([to_mono(estimated_stems[s]) for s in common])
+    # Global minimum length — must be computed across ALL pairs before trimming.
+    # Per-pair trimming produces arrays of different lengths that cannot be
+    # stacked, and causes silent batch failures when AAC streams decode to
+    # slightly different durations.
+    global_min = min(
+        min(reference_stems[r].shape[0], estimated_stems[e].shape[0])
+        for r, e in pairs
+    )
 
-    # Align lengths
-    min_len = min(ref_matrix.shape[1], est_matrix.shape[1])
-    ref_matrix = ref_matrix[:, :min_len]
-    est_matrix = est_matrix[:, :min_len]
+    ref_list, est_list, labels = [], [], []
+    for ref_key, est_key in pairs:
+        ref = reference_stems[ref_key]
+        est = estimated_stems[est_key]
+        ref_list.append(to_mono(ref[:global_min]))
+        est_list.append(to_mono(est[:global_min]))
+        labels.append(ref_key)
 
+    ref_matrix = np.stack(ref_list).astype(np.float64)  # (n_sources, samples)
+    est_matrix = np.stack(est_list).astype(np.float64)
+
+    # compute_permutation=False: both matrices are already in matching sorted
+    # order (same 'common' key list).  With compute_permutation=True, mir_eval
+    # might reassign estimated drums → reference bass when that pairing happens
+    # to maximise total SDR, causing sdr[i] to measure the wrong source pair
+    # while still being labelled with labels[i].
     sdr, sir, sar, _ = mir_eval.separation.bss_eval_sources(
         ref_matrix, est_matrix, compute_permutation=False
     )
 
     rows = []
-    for i, stem in enumerate(common):
-        rows.append(
-            {
-                "stem": stem,
-                "SDR": round(float(sdr[i]), 4),
-                "SIR": round(float(sir[i]), 4),
-                "SAR": round(float(sar[i]), 4),
-            }
-        )
+    for i, label in enumerate(labels):
+        rows.append({
+            "stem": label,
+            "SDR":  round(float(sdr[i]), 4),
+            "SIR":  round(float(sir[i]), 4),
+            "SAR":  round(float(sar[i]), 4),
+        })
     return pd.DataFrame(rows)
 
 
@@ -362,6 +460,7 @@ def evaluate_dataset_stem_mp4(
     if not files:
         raise FileNotFoundError(f"No .stem.mp4 files found in {dataset_dir}")
 
+    skipped = []
     all_results = []
     for i, f in enumerate(files, 1):
         print(f"[{i}/{len(files)}] Evaluating: {f.name}")
@@ -370,8 +469,19 @@ def evaluate_dataset_stem_mp4(
                 str(f), model=model, stem_names=stem_names, sample_rate=sample_rate
             )
             all_results.append(df)
-        except Exception as exc:
-            print(f"  [error] Skipped {f.name}: {exc}")
+        except (FileNotFoundError, ValueError) as exc:
+            # Per-track data problems: log and continue so one bad file
+            # doesn't abort the whole batch.
+            import traceback
+            print(f"  [SKIPPED] {f.name}: {exc}")
+            print(traceback.format_exc())
+            skipped.append(f.name)
+        # All other exceptions (RuntimeError from worker, numpy shape errors,
+        # etc.) are NOT caught here — they propagate and crash loudly so the
+        # bug is visible, matching the behaviour of single-track mode.
+
+    if skipped:
+        print(f"\n[warn] {len(skipped)}/{len(files)} tracks were skipped: {skipped}")
 
     if not all_results:
         raise RuntimeError("All tracks failed evaluation.")
@@ -577,7 +687,7 @@ def main():
 
     results.to_csv(args.out, index=False)
     print(f"Results saved to: {args.out}\n")
-    print(results.to_string(index=False))
+    # print(results.to_string(index=False))
 
 
 if __name__ == "__main__":
