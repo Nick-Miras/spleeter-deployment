@@ -19,3 +19,5 @@ dependencies:
     - mir_eval
     - musdb
     - stempeg
+    - soundfile
+    - librosa
