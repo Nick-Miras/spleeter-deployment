@@ -1,14 +1,13 @@
 # Create directory structure
 PROJECT_ROOT=$(pwd)
 mkdir -p data/Datasets
-cd data
 # Download the dataset
 aws s3 sync s3://spleeter-dataset-338310096867-us-east-1-an data/Datasets
 
 
 # Update config paths
 cd "$PROJECT_ROOT"
-python3 create_paths.py
+python3 setup_config.py
 
 
 # Download pretrained model
