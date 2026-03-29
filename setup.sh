@@ -15,8 +15,6 @@ python3 convert_paths.py
 echo "Downloading pretrained model..."
 mkdir -p spleeter_pretrained1
 cd spleeter_pretrained1
-wget https://github.com/deezer/spleeter/releases/download/v1.4.0/4stems-finetune.tar.gz
-tar -xzf 4stems-finetune.tar.gz
-rm 4stems-finetune.tar.gz
+hf download NickAnthonyMiras/spleeter-thesis-1.514m --repo-type model --local-dir .
 
 echo "Setup complete. You can now run 'train.sh' to start training and 'monitor.sh' to monitor with TensorBoard."
