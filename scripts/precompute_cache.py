@@ -6,7 +6,7 @@ from tqdm import tqdm
 import math
 
 
-config = load_configuration("configs/modified_config.json")
+config = load_configuration("configs/config.json")
 audio_adapter = AudioAdapter.default()
 
 # Make sure your batch_size is set high (e.g., 128) in your config!

@@ -1,7 +1,7 @@
 import json
 import os
 
-config_path = 'configs/modified_config.json'
+config_path = 'configs/config.json'
 with open(config_path, 'r') as f:
     config = json.load(f)
 
