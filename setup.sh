@@ -3,12 +3,12 @@ PROJECT_ROOT=$(pwd)
 mkdir -p data/Datasets
 cd data
 # Download the dataset
-hf download qrowraven/Datasetqrow --repo-type dataset --local-dir Datasets
+aws s3 sync s3://spleeter-dataset-338310096867-us-east-1-an data/Datasets
 
 
 # Update config paths
 cd "$PROJECT_ROOT"
-python3 convert_paths.py
+python3 create_paths.py
 
 
 # Download pretrained model

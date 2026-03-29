@@ -9,6 +9,7 @@ root = os.getcwd()
 config['train_csv'] = os.path.join(root, 'data', 'train_unix.csv')
 config['validation_csv'] = os.path.join(root, 'data', 'validation_unix.csv')
 config['model_dir'] = os.path.join(root, 'spleeter_pretrained1')
+config['batch_size'] = 128
 
 with open(config_path, 'w') as f:
     json.dump(config, f, indent=4)
