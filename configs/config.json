@@ -6,18 +6,18 @@
         "params": {
             "conv_activation": "ELU",
             "deconv_activation": "ELU",
-            "conv2d_num_filters": 64,
-            "layer_num": 6 
+            "conv2d_num_filters": 128,
+            "layer_num": 8 
         }
     },
     "sample_rate": 44100,
     "frame_length": 4096,
     "frame_step": 1024,
-    "T": 256,
+    "T": 512,
     "F": 1024,
     "n_channels": 2,
     "chunk_duration": 11,
-    "batch_size": 64,
+    "batch_size": 16,
     "shuffle_buffer_size": 1000,
     "learning_rate": 0.0001,
     "train_max_steps": 1540000,
