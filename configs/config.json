@@ -5,7 +5,9 @@
         "type": "unet.unet",
         "params": {
             "conv_activation": "ELU",
-            "deconv_activation": "ELU"
+            "deconv_activation": "ELU",
+            "conv2d_num_filters": 64,
+            "layer_num": 6 
         }
     },
     "sample_rate": 44100,
