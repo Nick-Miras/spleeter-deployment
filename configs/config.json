@@ -16,7 +16,7 @@
     "T": 512,
     "F": 1024,
     "n_channels": 2,
-    "chunk_duration": 11,
+    "chunk_duration": 12,
     "batch_size": 16,
     "shuffle_buffer_size": 1000,
     "learning_rate": 0.0001,
