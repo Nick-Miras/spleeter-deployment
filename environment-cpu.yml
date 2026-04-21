@@ -5,10 +5,10 @@ dependencies:
   - python=3.9
   - ffmpeg              
   - libsndfile          
-  - numpy<2.0           
+  - numpy<1.24.0     
+  - pandas<2.2.0    
   - scipy               
   - tensorboard
-  - httpx
   - typer
   - click
   - huggingface_hub<1.0
@@ -21,3 +21,4 @@ dependencies:
     - stempeg
     - soundfile
     - librosa
+    - httpx[http2]

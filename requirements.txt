@@ -3,6 +3,7 @@ httpx==0.19.0
 typer==0.3.2
 click==7.1.2
 huggingface_hub<1.0
-numpy<2.0
+numpy<1.24.0
 hf_transfer
 tensorboard
+pandas<2.2.0 
