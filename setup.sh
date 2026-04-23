@@ -4,10 +4,9 @@ mkdir -p data/Datasets
 # Download the dataset
 aws s3 sync s3://spleeter-dataset-338310096867-us-east-1-an data/Datasets
 
-
 # Update config paths
 cd "$PROJECT_ROOT"
-python3 setup_config.py
+python3 scripts/write_paths.py
 
 # Download precomputed cache
 echo "Downloading precomputed cache..."

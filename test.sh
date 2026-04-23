@@ -1,5 +1,3 @@
-mkdir output_directory
+mkdir output/testmusic
 
-python -m spleeter separate -o output/ -p configs/config.json audiotest/testmusic.mp3
-
-zip -r results.zip output/
+python -m spleeter separate -o output/testmusic -p configs/config.json testmusic.mp3

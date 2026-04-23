@@ -1,3 +1,6 @@
+"""
+This script is designed to create the training cache for Spleeter using TensorFlow's data pipeline.
+"""
 import tensorflow as tf
 from spleeter.utils.configuration import load_configuration
 from spleeter.dataset import DatasetBuilder
