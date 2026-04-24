@@ -4,6 +4,16 @@ typer==0.3.2
 click==7.1.2
 huggingface_hub<1.0
 numpy<1.24.0
+pandas<2.2.0 
+scipy<1.12.0
+
+librosa==0.11.0
+mir_eval==0.8.2
+musdb==0.4.3
+soundfile==0.13.1
+tqdm==4.67.3
+
+gradio
 hf_transfer
 tensorboard
-pandas<2.2.0 
+
