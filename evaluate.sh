@@ -6,11 +6,9 @@ mkdir data/musdb18
 unzip musdb18.zip -d data/musdb18/
 rm musdb18.zip
 
-hf download NickAnthonyMiras/spleeter-thesis-1.514m --repo-type model --local-dir spleeter_pretrained1/
-
-python create_paths.py
+python scripts/write_paths.py
 python scripts/evaluate.py \
-    --model configs/modified_config.json \
+    --model configs/config.json \
     --out metrics.csv \
     --stem-names drums bass other vocals \
     --dataset data/musdb18/test/ \

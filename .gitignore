@@ -3,3 +3,8 @@ scratches/
 .venv/
 .vscode
 app_mock.py
+.temp_wavs/
+data/*
+output/*
+spleeter_pretrained1
+gradio_output
